@@ -68,15 +68,17 @@ Everything has been added in poketheme/inc/pokemon except for the CTP template
 
 - I assumed "attacks" (point 2 h) to be "moves", but could not find a "description" field, so I used "type" -> "name". There is no field called "description".
 
-- Initially, I used ACF, including it in the theme plugins. I discarded this option as the native WordPress custom fields were enough. And the project is more simple like this. 
+- Initially, I used ACF, including it in the theme plugins. I discarded this option as the native WordPress custom fields were enough. And the project is more simple this way. 
 
-- I like to add functionality as components. This would mean to have all the files related to certain functionality in one folder. PHP files, JS,  PHP templates, CSS (sass or less), etc. This helps with maintenace, makes it easier to find for other developers and can be reused in another project with some simple changes. This works really well specially with complex projects. In this case, it could seem a bit redundant not to have the custom post template with the rest of the templates, so I decided to leave it there. 
-
-- I would have love to take time to work on the frontend, markup and styling. Creating a sass files estructure, add Gulp/Grunt to compile it.. etc. 
+- I like to add functionality as components. This would mean to have all the files related to certain functionality in one folder. PHP files, JS,  PHP templates, CSS (sass or less), etc. This helps with maintenace, makes it easier to work with for other developers and can be reused in another project with some simple changes. This works really well specially with complex projects. (In this case, it could seem a bit redundant not to have the custom post template with the rest of the templates, so I decided to leave it there.)
 
 - I assumed the starter theme is accessible but I did not check. This is also something I enjoy working on.
 
-- I havent worked on Typescript for some time, so having to prioritise my time, I left that task undone. I prefere to focus on what I can deliver with certain quality level in the code.
+- I havent worked on Typescript for some time, so having to prioritise my time, I left that task undone. I prefere to focus on what I can deliver with certain quality level in the code. 
+
+- As my frontend skills are not shown is this challenge, I would like to share an exercise I worked on some time ago (HTML, CSS, sass, Gulp) : https://github.com/luciadeveloper/landing  
+
+- I would have love to take time to work on the frontend, markup and styling. Creating a sass files estructure, add Gulp/Grunt to compile it.. etc. 
 
 - I added a simple test, so I could show something, but there is quite some room for improvements there. 
 
