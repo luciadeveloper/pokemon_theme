@@ -36,7 +36,7 @@ class Pokemon {
         add_action( 'init', array( $this, 'register_cpt' ));
        
         // create initial pokemons when the theme is enabled
-        add_action( 'after_switch_theme', array( $this, 'create_pokemons' ) );
+        add_action( 'init', array( $this, 'add_demo_pokemons' ) );
         
         //ajax endpoints
         add_action( 'wp_ajax_pokemon_data', array( $this,'pokemon_data' ) );
@@ -91,42 +91,58 @@ class Pokemon {
             'menu_icon'             => 'dashicons-pets',
         );
         
+      
         register_post_type( $this->type, $args );
+
     }
     
+    /**
+     * Add demo pokemons
+     */
+    public function add_demo_pokemons( ) {
+       
+        //using an option to make sure demo content is only added once
+        if ( !get_option( 'demo_pokemons_ready' ) ):
+ 
+            $this->create_pokemons( $this->new_pokemons );
+     
+            add_option( 'demo_pokemons_ready', 1 ); 
+
+        endif;
+       
+    }
 
     /**
      * Create new pokemons 
      */
-    public function create_pokemons( $n = 3) {
-    
+    public function create_pokemons( $n ) {
+           
+        //retreiving data from API
         $data  =  $this->pokemon_data( $this->api_endpoint );
+        
+        //getting the amount of pokemons. This var could be cached in WP_Cache and limit the calls to the API to once per day.
         $count =  $data->count;
         
-        for ($i = 0; $i < $n; $i++) {
-            
+        //loop to create n pokemons
+        for ( $i = 0; $i < $n; $i++ ) {
+        
+            //generate a random num, to use as pokemon id to call the API with and getting the data from that random pokemon
             $rand         = rand( 0, $count );
             $pokemon_data =  $this->pokemon_data( $this->api_endpoint.$rand );            
 
             if( ! is_null( $pokemon_data )  ) {
 
-                //checks if a post with same name already exists
+                //checks if a pokemon with same name already exists in the DB
                 $post_exist = get_page_by_title(  $pokemon_data->name );
                
                 if( ! $post_exist ) {
+                    //if the API provided a pokemon and that pokemon is not yet in our DB, create it.
                     $this->create_one_pokemon( $pokemon_data );
                 }
-
-                else { //if that Pokemon was already in the DB
-                    --$i;
-                }
-              
-            } 
-            else {   //if there was no pokemon retreived from the API, give it another try
-                --$i;
-            }
+            }        
             
         }
+        
        
     }
 
@@ -134,12 +150,12 @@ class Pokemon {
      * Create one pokemon with the data from the API
      */
     public function create_one_pokemon( $pokemon_data ) {
-    
+       
+        //getting Pokemon data into vars
         $name           = $pokemon_data->name;
         $pokemon_id     = $pokemon_data->id; //same as $rand
         $weight         = $pokemon_data->weight;
         $primary_type   = $pokemon_data->types[0]->type->name;
- 
         $secondary_type = $pokemon_data->types[1]->type->name ?? 'no data';
         $game_indices   = $pokemon_data->game_indices; 
        
@@ -150,7 +166,7 @@ class Pokemon {
 
         $game_last_indice = end( $game_indices )->game_index ?? 'no data';
 
-        //attacks
+        //getting the attacks of this pokemon
         $moves = $this->get_pokemon_moves( $pokemon_data->moves );
 
         //basic post atributes
@@ -185,6 +201,7 @@ class Pokemon {
         $moves      = $pokemon_moves;
         $moves_list = array();
        
+        //looping the moves array to get only the name and description of each and return it.
         foreach ( $moves as $move ) {
 
             $movement                = array();
@@ -199,7 +216,7 @@ class Pokemon {
             
         }
        
-        return($moves_list); 
+        return( $moves_list ); 
        
     }
 
@@ -228,6 +245,7 @@ class Pokemon {
      * http://poketest.local/wp-json/get-pokemon/random/ 
      */
     public function register_url_get_pokemon(){
+       
         register_rest_route( 'get-pokemon', 'random', 
             array(
                 'methods'  => 'GET',
@@ -245,6 +263,7 @@ class Pokemon {
      * http://poketest.local/wp-json/list-pokemons/bypokedex
      */
     public function register_url_list_pokemons_by_pokedex(){
+       
         register_rest_route( 'list-pokemons', 'bypokedex', 
             array(
                 'methods'  => 'GET',
@@ -272,6 +291,7 @@ class Pokemon {
      */
     function get_random_pokemon() {
       
+        //quering the DB for one random Pokemon
         $args = array(
             'post_type'      => $this->type,
             'orderby'        => 'rand',
@@ -284,7 +304,8 @@ class Pokemon {
          
             $the_query->the_post();
            
-            wp_redirect( get_permalink() ); //redirects the page to the pokemon post page
+            //redirecting user to the page of the Pokemon 
+            wp_redirect( get_permalink() ); 
            
             wp_reset_postdata();
 
@@ -300,9 +321,9 @@ class Pokemon {
      */
     function list_pokemons() {
        
+        //quering the DB for all pokemons, order by metakey
         $args = array(
             'post_type'      => $this->type,
-            'orderby'        => 'rand',
             'posts_per_page' => 500, //to show them all is typically used -1 but this could create performance issues. So I decided to use a high number.
             'meta_key'       => 'pokedex_last_version',
             'orderby'        => 'meta_value_num',
@@ -311,6 +332,7 @@ class Pokemon {
 
         $the_query = new \WP_Query( $args );
  
+        //printing Pokemons obtained, name and pokedex version
         if ( $the_query->have_posts() ) {
            
             while ( $the_query->have_posts() ) {
@@ -387,8 +409,7 @@ class Pokemon {
     
         if ( is_wp_error( $request )) {
 
-            $error_message = $response->get_error_message();
-            echo $error_message;
+            return new \WP_Error( 'site-down', esc_html__( 'API not working.', '_s') );
 
         }
     
